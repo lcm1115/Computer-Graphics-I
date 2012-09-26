@@ -21,24 +21,40 @@
 
 using namespace std;
 
+// Representation of an edge.
 typedef struct edge {
   int ymax, x, dx, dy, sum;
 } Edge;
 
+// Compares two edges for equality.
+// Return:
+//  -1 if a < b
+//   0 if a == b
+//   1 if a > b
 bool compareEdge(Edge* a, Edge* b) {
+  // If the edges share a common x value, special considerations need to be
+  // made.
   if (a->x == b->x) {
+    // If Edge a is vertical, it is 'less than' b
     if (a->dy == 0) {
       return -1;
-    } else if (b->dy == 0) {
+    }
+    // If Edge b is vertical, it is 'less than' a
+    else if (b->dy == 0) {
       return 1;
     }
+    // Otherwise compare slopes.
     return (a->dx / a->dy) < (b->dx / b->dy);
   }
   return a->x < b->x;
 }
 
+// Updates edges as needed after each scan line.
 void updateEdge(Edge* edge) {
+  // Increment sum.
   edge->sum += edge->dx;
+
+  // If sum exceeds dy, adjust x accordingly.
   while (edge->dy != 0 && edge->sum >= abs(edge->dy)) {
     edge->sum -= abs(edge->dy);
     if (edge->dy < 0) {
@@ -52,14 +68,21 @@ void updateEdge(Edge* edge) {
 void fillPolygon( GLint n, Vertex v[] ) {
   map<int, vector<Edge*> > ET;
   int ymax = 0;
+  // Generate edge table.
   for (int i = 0; i < n ; ++i) {
+    // Collect two points from Vertex list.
     int var1 = i;
     int var2 = (i + 1) % n;
+    // Swap indices if wrapping around the end of the table.
     if (var1 > var2) {
       swap(var1, var2);
     }
     Edge* newEdge = new Edge;
     newEdge->sum = 0;
+    // Generate edge according to (y, x) points.
+
+    // ymax should be the greater of the y values.
+    // If y values are equal, make the lesser of the x values the x value.
     if (v[var1].y > v[var2].y) {
       ET[v[var2].y].push_back(newEdge);
       newEdge->ymax = v[var1].y;
@@ -73,6 +96,8 @@ void fillPolygon( GLint n, Vertex v[] ) {
       newEdge->ymax = v[var2].y;
       newEdge->x = min(v[var1].x, v[var2].x);
     }
+
+    // Assign dx and dy values.
     if (v[var1].x > v[var2].x) {
       newEdge->dx = v[var1].x - v[var2].x;
       newEdge->dy = v[var1].y - v[var2].y;
@@ -82,10 +107,14 @@ void fillPolygon( GLint n, Vertex v[] ) {
     }
     ymax = max(ymax, newEdge->ymax);
   }
+
+  // Begin grabbing edges and drawing pixels.
   vector<Edge*> AET;
   map<int, vector<Edge*> >::iterator it = ET.begin();
   int y = it->first;
+  // Iterate while edges exist or y is less than ymax
   while (!ET.empty() || y <= ymax) {
+    // Remove all edges whose ymax is equal to the current scanline.
     for (vector<Edge*>::iterator it2 = AET.begin(); it2 != AET.end(); ) {
       if ((*it2)->ymax == y) {
         delete *it2;
@@ -94,18 +123,25 @@ void fillPolygon( GLint n, Vertex v[] ) {
         ++it2;
       }
     }
+    // If edges exist and they start at the current scanline, add them to the
+    // active edge table.
     if (it != ET.end() && it->first == y) {
       AET.insert(AET.end(), it->second.begin(), it->second.end());
       ET.erase(it);
       ++it;
     }
+    // Sort the active edge table.
     sort(AET.begin(), AET.end(), compareEdge);
+
+    // For all edges in the active edge table, draw the pixels.
     for (int i = 0; i < AET.size(); i += 2) {
       Edge* e1 = AET.at(i);
       Edge* e2;
       if (i < AET.size() - 1) {
         e2 = AET.at(i + 1);
       }
+      // If either of the edges is horizontal, draw it and go back to the top of
+      // the loop.
       if (e1->dy == 0) {
         for (int j = 0; j <= e1->dx; ++j) {
           setPixel(e1->x + j, y);
@@ -122,6 +158,7 @@ void fillPolygon( GLint n, Vertex v[] ) {
         i -= 2;
         continue;
       }
+      // Draw all pixels between the edges.
       for (int x = e1->x; x <= e2->x; ++x) {
         setPixel(x, y);
       }
