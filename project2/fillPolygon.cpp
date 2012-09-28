@@ -35,15 +35,6 @@ bool compareEdge(Edge* a, Edge* b) {
   // If the edges share a common x value, special considerations need to be
   // made.
   if (a->x == b->x) {
-    // If Edge a is vertical, it is 'less than' b
-    if (a->dy == 0) {
-      return -1;
-    }
-    // If Edge b is vertical, it is 'less than' a
-    else if (b->dy == 0) {
-      return 1;
-    }
-    // Otherwise compare slopes.
     return (a->dx / a->dy) < (b->dx / b->dy);
   }
   return a->x < b->x;
@@ -92,9 +83,8 @@ void fillPolygon( GLint n, Vertex v[] ) {
       newEdge->ymax = v[var2].y;
       newEdge->x = v[var1].x;
     } else {
-      ET[v[var1].y].push_back(newEdge);
-      newEdge->ymax = v[var2].y;
-      newEdge->x = min(v[var1].x, v[var2].x);
+      delete newEdge;
+      continue;
     }
 
     // Assign dx and dy values.
@@ -136,28 +126,7 @@ void fillPolygon( GLint n, Vertex v[] ) {
     // For all edges in the active edge table, draw the pixels.
     for (int i = 0; i < AET.size(); i += 2) {
       Edge* e1 = AET.at(i);
-      Edge* e2;
-      if (i < AET.size() - 1) {
-        e2 = AET.at(i + 1);
-      }
-      // If either of the edges is horizontal, draw it and go back to the top of
-      // the loop.
-      if (e1->dy == 0) {
-        for (int j = 0; j <= e1->dx; ++j) {
-          setPixel(e1->x + j, y);
-        }
-        AET.erase(AET.begin() + i);
-        i -= 2;
-        continue;
-      }
-      if (e2->dy == 0) {
-        for (int j = 0; j <= e2->dx; ++j) {
-          setPixel(e2->x + j, y);
-        }
-        AET.erase(AET.begin() + i + 1);
-        i -= 2;
-        continue;
-      }
+      Edge* e2 = AET.at(i + 1);
       // Draw all pixels between the edges.
       for (int x = e1->x; x <= e2->x; ++x) {
         setPixel(x, y);
