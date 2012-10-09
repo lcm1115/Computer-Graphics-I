@@ -21,111 +21,112 @@ using namespace std;
 ** result.
 */
 
-bool inside(const Vertex &v, const Vertex &ll, const Vertex &ur) {
-  return v.x >= ll.x && v.x <= ur.x &&
-         v.y >= ll.y && v.y <= ur.y;
+
+// Given a vertex and a pair of coordinates for an edge, determine if the vertex
+// is inside the clipping window/edge.
+bool inside(const Vertex &v, int x0, int y0, int x1, int y1) {
+  // Top edge
+  if (y0 == y1 && x0 > x1) {
+    return v.y <= y0;
+  }
+  // Bottom edge
+   else if (y0 == y1 && x0 < x1) {
+    return v.y >= y0;
+  }
+  // Left edge
+   else if (x0 == x1 && y0 > y1) {
+    return v.x >= x0;
+  }
+  // Right edge
+   else if (x0 == x1 && y0 < y1) {
+    return v.x <= x0;
+  }
 }
 
-Vertex intersect(Vertex v,
-                 Vertex w,
-                 Vertex ll,
-                 Vertex ur) {
+// Given two vertices and a clipping edge, find the intersection of the line
+// segment between the two vertices and the clipping edge.
+Vertex intersect(Vertex v, Vertex w, int x0, int y0, int x1, int y1) {
   Vertex newEdge;
   double m = static_cast<double>(v.y - w.y) / (v.x - w.x);
   int b = v.y - m * v.x;
-  // Left edge
-  if (max(v.x, w.x) > ll.x && min(v.x, w.x) < ll.x) {
-    cout << "LEFT EDGE" << endl;
-    newEdge.x = ll.x;
-    newEdge.y = m * ll.x + b;
+
+  if (y0 == y1) {
+    // Add special case for testing horizontal edges but vertices share x
+    // coordinate (therefore division by zero is posible)
+    if (v.x == w.x) {
+      newEdge.x = v.x;
+    } else {
+      newEdge.x = (y0 - b) / m;
+    }
+    newEdge.y = y0;
+  } else if (x0 == x1) {
+    newEdge.x = x0;
+    newEdge.y = m * x0 + b;
   }
-  // Right edge
-  else if (max(v.x, w.x) > ur.x && min(v.x, w.x) < ur.x) {
-    cout << "RIGHT EDGE" << endl;
-    newEdge.x = ur.x;
-    newEdge.y = m * ur.x + b;
-  }
-  // Bottom edge
-  else if (min(v.y, w.y) < ll.y && max(v.y, w.y) > ll.y) {
-    cout << "BOTTOM EDGE" << endl;
-    newEdge.x = (ll.y - b) / m;
-    newEdge.y = ll.y;
-  }
-  // Top edge
-  else if (min(v.y, w.y) < ur.y && max(v.y, w.y) > ll.y) {
-    cout << "TOP EDGE" << endl;
-    newEdge.x = (ur.y - b) / m;
-    newEdge.y = ur.y;
-  }
-  cout << "newEdge: (" << newEdge.x << ", " << newEdge.y << ")" << endl;
+
   return newEdge;
 }
 
-GLint clipPolygon( GLint in, const Vertex inv[], Vertex outv[],
-		  Vertex ll, Vertex ur ) {
+// Clip the set of vertices against one edge of the clipping window
+int SHPC(Vertex outv[], const Vertex inv[], int in,
+          int x0, int y0, int x1, int y1) {
   int outLength = 0;
   Vertex p = inv[in - 1];
-
   for (int i = 0; i < in; ++i) {
     Vertex s = inv[i];
 
-    if (inside(s, ll, ur)) {
-      if (inside(p, ll, ur)) {
+    if (inside(s, x0, y0, x1, y1)) {
+      if (inside(p, x0, y0, x1, y1)) {
         outv[outLength] = s;
         ++outLength;
       } else {
-        Vertex i = intersect(s, p, ll, ur);
+        Vertex i = intersect(s, p, x0, y0, x1, y1);
         outv[outLength] = i;
         ++outLength;
         outv[outLength] = s;
         ++outLength;
       }
     } else {
-      if (inside(p, ll, ur)) {
-        Vertex i = intersect(s, p, ll, ur);
+      if (inside(p, x0, y0, x1, y1)) {
+        Vertex i = intersect(s, p, x0, y0, x1, y1);
         outv[outLength] = i;
-        ++outLength;
-      } else {
-        if (p.x <= ll.x) {
-          outv[outLength].x = ll.x;
-        } else if (p.x >= ur.x) {
-          outv[outLength].x = ur.x;
-        } else {
-          outv[outLength].x = p.x;
-        }
-        if (p.y <= ll.y) {
-          outv[outLength].y = ll.y;
-        } else if (p.y >= ur.y) {
-          outv[outLength].y = ur.y;
-        } else {
-          outv[outLength].y = p.y;
-        }
-        ++outLength;
-        if (s.x <= ll.x) {
-          outv[outLength].x = ll.x;
-        } else if (s.x >= ur.x) {
-          outv[outLength].x = ur.x;
-        } else {
-          outv[outLength].x = s.x;
-        }
-        if (s.y <= ll.y) {
-          outv[outLength].y = ll.y;
-        } else if (s.y >= ur.y) {
-          outv[outLength].y = ur.y;
-        } else {
-          outv[outLength].y = s.y;
-        }
         ++outLength;
       }
     }
-
     p = s;
   }
 
-  for (int i = 0; i < outLength; ++i) {
-    cout << "Vertex " << i << ": ("
-         << outv[i].x << ", " << outv[i].y << ")" << endl;
+  return outLength;
+}
+
+// Copy vertices from one array to another
+void copyvertices(Vertex dest[], Vertex source[], int n) {
+  for (int i = 0; i < n; ++i) {
+    dest[i] = source[i];
   }
+}
+
+GLint clipPolygon( GLint in, const Vertex inv[], Vertex outv[],
+		  Vertex ll, Vertex ur ) {
+  int outLength = 0;
+
+  Vertex v[50];
+
+  // Clip top edge
+  outLength = SHPC(outv, inv, in, ur.x, ur.y, ll.x, ur.y);
+  copyvertices(v, outv, outLength);
+
+  // Clip left edge
+  outLength = SHPC(outv, v, outLength, ll.x, ur.y, ll.x, ll.y);
+  copyvertices(v, outv, outLength);
+
+  // Clip bottom edge
+  outLength = SHPC(outv, v, outLength, ll.x, ll.y, ur.x, ll.y);
+  copyvertices(v, outv, outLength);
+
+  // Clip right edge
+  outLength = SHPC(outv, v, outLength, ur.x, ll.y, ur.x, ur.y);
+
   return outLength;
 }
 
