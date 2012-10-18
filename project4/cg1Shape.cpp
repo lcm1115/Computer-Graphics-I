@@ -45,21 +45,25 @@ void makeCube (int subdivisions) {
     curx = -0.5;
     for (int j = 0; j < subdivisions; ++j) {
       // Front
+      // Add triangle 1
       Point3 p1(curx, cury, curz);
       Point3 p2(curx, cury + 1.0 / subdivisions, curz);
       Point3 p3(curx + 1.0 / subdivisions, cury, curz);
       addTriangle(p1, p2, p3);
 
+      // Add triangle 2
       p1 = p2;
       p2.x = curx + 1.0 / subdivisions; p2.y = cury + 1.0 / subdivisions;
       addTriangle(p1, p2, p3);
 
       // Back
+      // Add triangle 1
       p1.x = curx; p1.y = cury; p1.z = -curz;
       p2.x = curx; p2.y = cury + 1.0 / subdivisions; p2.z = -curz;
       p3.x = curx + 1.0 / subdivisions; p3.y = cury; p3.z = -curz;
       addTriangle(p3, p2, p1);
 
+      // Add triangle 2
       p1 = p2; p1.z = -curz;
       p2.x = curx + 1.0 / subdivisions; p2.y = cury + 1.0 / subdivisions; p2.z = -curz;
       p3.z = -curz;
@@ -76,21 +80,25 @@ void makeCube (int subdivisions) {
     curx = -0.5;
     for (int j = 0; j < subdivisions; ++j) {
       // Front
+      // Add triangle 1
       Point3 p1(curx, curz, cury);
       Point3 p2(curx, curz, cury + 1.0 / subdivisions);
       Point3 p3(curx + 1.0 / subdivisions, curz, cury);
       addTriangle(p3, p2, p1);
 
+      // Add triangle 2
       p1 = p2;
       p2.x = curx + 1.0 / subdivisions; p2.z = cury + 1.0 / subdivisions;
       addTriangle(p3, p2, p1);
 
       // Back
+      // Add triangle 1
       p1.x = curx; p1.y = -curz; p1.z = cury;
       p2.x = curx; p2.y = -curz; p2.z = cury + 1.0 / subdivisions;
       p3.x = curx + 1.0 / subdivisions; p3.y = -curz; p3.z = cury;
       addTriangle(p1, p2, p3);
 
+      // Add triangle 2
       p1 = p2; p1.y = -curz;
       p2.x = curx + 1.0 / subdivisions; p2.z = cury + 1.0 / subdivisions; p2.y = -curz;
       p3.y = -curz;
@@ -107,21 +115,25 @@ void makeCube (int subdivisions) {
     curx = -0.5;
     for (int j = 0; j < subdivisions; ++j) {
       // Front
+      // Add triangle 1
       Point3 p1(curz, cury, curx);
       Point3 p2(curz, cury + 1.0 / subdivisions, curx);
       Point3 p3(curz, cury, curx + 1.0 / subdivisions);
       addTriangle(p3, p2, p1);
 
+      // Add triangle 2
       p1 = p2;
       p2.z = curx + 1.0 / subdivisions; p2.y = cury + 1.0 / subdivisions;
       addTriangle(p3, p2, p1);
 
       // Back
+      // Add triangle 1
       p1.z = curx; p1.y = cury; p1.x = -curz;
       p2.z = curx; p2.y = cury + 1.0 / subdivisions; p2.x = -curz;
       p3.z = curx + 1.0 / subdivisions; p3.y = cury; p3.x = -curz;
       addTriangle(p1, p2, p3);
 
+      // Add triangle 2
       p1 = p2; p1.x = -curz;
       p2.z = curx + 1.0 / subdivisions; p2.y = cury + 1.0 / subdivisions; p2.x = -curz;
       p3.x = -curz;
@@ -154,8 +166,11 @@ void makeCylinder (float radius, int radialDivisions, int heightDivisions) {
 
   Point3 base(0, 0, -0.5);
   Point3 top(0, 0, 0.5);
+
+  // Calculate angle for each division
   double angle = 360.0 / radialDivisions;
   
+  // Create points for each point in the bottom circle and top circle
   for (double i = 0; i < 360; i += angle) {
     double curx = radius * cos(i * DEGREE_RADIAN_FACTOR);
     double cury = radius * sin(i * DEGREE_RADIAN_FACTOR);
@@ -165,24 +180,30 @@ void makeCylinder (float radius, int radialDivisions, int heightDivisions) {
 
   // Base circles
   for (int i = 0; i < circbot.size(); ++i) {
+    // Create triangle at bottom
     Point3 p1 = circbot.at(i);
     Point3 p2 = circbot.at((i + 1) % circbot.size());
     addTriangle(p1, p2, base);
     
+    // Create triangle at top
     p1 = circtop.at(i);
     p2 = circtop.at((i + 1) % circtop.size());
     addTriangle(p2, p1, top);
-    // Sides
+
+    // Create side between top and bottom points
+    // Calculate height of each division
     double zstep = 1.0 / heightDivisions;
     for (int j = 0; j < heightDivisions; ++j) {
       Point3 p3 = p1;
       p3.z -= zstep;
 
+      // Add triangle 1
       addTriangle(p1, p2, p3);
 
       Point3 p4 = p2;
       p4.z -= zstep;
       
+      // Add triangle 2
       addTriangle(p3, p2, p4);
 
       p1.z -= zstep;
@@ -212,8 +233,11 @@ void makeCone (float radius, int radialDivisions, int heightDivisions) {
 
   Point3 base(0, 0, -0.5);
   Point3 top(0, 0, 0.5);
+
+  // Compute angle of each point in the base
   double angle = 360.0 / radialDivisions;
   
+  // Create points for each point in the base
   for (double i = 0; i < 360; i += angle) {
     double curx = radius * cos(i * DEGREE_RADIAN_FACTOR);
     double cury = radius * sin(i * DEGREE_RADIAN_FACTOR);
@@ -222,11 +246,12 @@ void makeCone (float radius, int radialDivisions, int heightDivisions) {
 
   // Base circles
   for (int i = 0; i < circbot.size(); ++i) {
+    // Create triangle at base
     Point3 p1 = circbot.at(i);
     Point3 p2 = circbot.at((i + 1) % circbot.size());
     addTriangle(p2, p1, base);
     
-    // Sides
+    // Create each side from base of cone up to top
     double zstep = 1.0 / heightDivisions;
     double rstep = radius / heightDivisions;
     double rad = radius;
@@ -235,6 +260,7 @@ void makeCone (float radius, int radialDivisions, int heightDivisions) {
     for (int j = 0; j < heightDivisions; ++j) {
       rad -= rstep;
 
+      // Calculate point for division, angle needs to be correct
       Point3 p3;
       p3.x = rad / radius * p1old.x;
       p3.y = rad / radius * p1old.y;
@@ -242,6 +268,7 @@ void makeCone (float radius, int radialDivisions, int heightDivisions) {
 
       addTriangle(p1, p2, p3);
 
+      // Calculate point for division, angle needs to be correct.
       Point3 p4;
       p4.x = rad / radius * p2old.x;
       p4.y = rad / radius * p2old.y;
@@ -252,6 +279,7 @@ void makeCone (float radius, int radialDivisions, int heightDivisions) {
       p1 = p3;
       p2 = p4;
     }
+    // Add last division (not rectangular)
     addTriangle(p1, p2, top);
   }
 }
@@ -332,17 +360,22 @@ void makeSphere (float radius, int subdivisions) {
   triangle.at(0) = p5; triangle.at(1) = p11; triangle.at(2) = p6;
   triangles.push_back(triangle);
 
+  // Begin subdividing
   for (int i = 0; i < subdivisions; ++i) {
+    // Make new vector of triangles
     vector<vector<Vector3> > temp;
     for (int j = 0; j < triangles.size(); ++j) {
       vector<Vector3> triangle = triangles.at(j);
       Vector3 p0 = triangle.at(0);
       Vector3 p1 = triangle.at(1);
       Vector3 p2 = triangle.at(2);
+
+      // Compute intermediate points
       Vector3 x((p0 + p1) * .5);
       Vector3 y((p0 + p2) * .5);
       Vector3 z((p1 + p2) * .5);
 
+      // Create new triangles based on old points and intermediate points
       vector<Vector3> newTriangle(3);
       newTriangle.at(0) = y; newTriangle.at(1) = x; newTriangle.at(2) = p0;
       temp.push_back(newTriangle);
@@ -351,17 +384,22 @@ void makeSphere (float radius, int subdivisions) {
       newTriangle.at(0) = z; newTriangle.at(1) = y; newTriangle.at(2) = p2;
       temp.push_back(newTriangle);
 
+      // Make base triangle use intermediate points
       triangle.at(0) = x;
       triangle.at(1) = y;
       triangle.at(2) = z;
       temp.push_back(triangle);
     }
+
+    // Set triangle vector equal to new vector
     triangles = temp;
   }
 
   // Add triangles!
   for (vector<vector<Vector3> >::iterator it = triangles.begin();
        it != triangles.end(); ++it) {
+
+       // Normalize each point
        it->at(0).normalize();
        it->at(1).normalize();
        it->at(2).normalize();
