@@ -164,8 +164,8 @@ void makeCylinder (float radius, int radialDivisions, int heightDivisions) {
   vector<Point3> circbot;
   vector<Point3> circtop;
 
-  Point3 base(0, 0, -0.5);
-  Point3 top(0, 0, 0.5);
+  Point3 base(0, -0.5, 0);
+  Point3 top(0, 0.5, 0);
 
   // Calculate angle for each division
   double angle = 360.0 / radialDivisions;
@@ -173,9 +173,9 @@ void makeCylinder (float radius, int radialDivisions, int heightDivisions) {
   // Create points for each point in the bottom circle and top circle
   for (double i = 0; i < 360; i += angle) {
     double curx = radius * cos(i * DEGREE_RADIAN_FACTOR);
-    double cury = radius * sin(i * DEGREE_RADIAN_FACTOR);
-    circbot.push_back(Point3(curx, cury, -0.5));
-    circtop.push_back(Point3(curx, cury, 0.5));
+    double curz = radius * sin(i * DEGREE_RADIAN_FACTOR);
+    circbot.push_back(Point3(curx, -0.5, curz));
+    circtop.push_back(Point3(curx, 0.5, curz));
   }
 
   // Base circles
@@ -192,22 +192,22 @@ void makeCylinder (float radius, int radialDivisions, int heightDivisions) {
 
     // Create side between top and bottom points
     // Calculate height of each division
-    double zstep = 1.0 / heightDivisions;
+    double ystep = 1.0 / heightDivisions;
     for (int j = 0; j < heightDivisions; ++j) {
       Point3 p3 = p1;
-      p3.z -= zstep;
+      p3.y -= ystep;
 
       // Add triangle 1
       addTriangle(p1, p2, p3);
 
       Point3 p4 = p2;
-      p4.z -= zstep;
+      p4.y -= ystep;
       
       // Add triangle 2
       addTriangle(p3, p2, p4);
 
-      p1.z -= zstep;
-      p2.z -= zstep;
+      p1.y -= ystep;
+      p2.y -= ystep;
     }
   }
 }
@@ -231,8 +231,8 @@ void makeCone (float radius, int radialDivisions, int heightDivisions) {
 
   vector<Point3> circbot;
 
-  Point3 base(0, 0, -0.5);
-  Point3 top(0, 0, 0.5);
+  Point3 base(0, -.5, 0);
+  Point3 top(0, .5, 0);
 
   // Compute angle of each point in the base
   double angle = 360.0 / radialDivisions;
@@ -240,8 +240,8 @@ void makeCone (float radius, int radialDivisions, int heightDivisions) {
   // Create points for each point in the base
   for (double i = 0; i < 360; i += angle) {
     double curx = radius * cos(i * DEGREE_RADIAN_FACTOR);
-    double cury = radius * sin(i * DEGREE_RADIAN_FACTOR);
-    circbot.push_back(Point3(curx, cury, -0.5));
+    double curz = radius * sin(i * DEGREE_RADIAN_FACTOR);
+    circbot.push_back(Point3(curx, -0.5, curz));
   }
 
   // Base circles
@@ -252,7 +252,7 @@ void makeCone (float radius, int radialDivisions, int heightDivisions) {
     addTriangle(p2, p1, base);
     
     // Create each side from base of cone up to top
-    double zstep = 1.0 / heightDivisions;
+    double ystep = 1.0 / heightDivisions;
     double rstep = radius / heightDivisions;
     double rad = radius;
     Point3 p1old(p1);
@@ -263,16 +263,16 @@ void makeCone (float radius, int radialDivisions, int heightDivisions) {
       // Calculate point for division, angle needs to be correct
       Point3 p3;
       p3.x = rad / radius * p1old.x;
-      p3.y = rad / radius * p1old.y;
-      p3.z = p1.z + zstep;
+      p3.z = rad / radius * p1old.z;
+      p3.y = p1.y + ystep;
 
       addTriangle(p1, p2, p3);
 
       // Calculate point for division, angle needs to be correct.
       Point3 p4;
       p4.x = rad / radius * p2old.x;
-      p4.y = rad / radius * p2old.y;
-      p4.z = p2.z + zstep;
+      p4.z = rad / radius * p2old.z;
+      p4.y = p2.y + ystep;
       
       addTriangle(p3, p2, p4);
 
