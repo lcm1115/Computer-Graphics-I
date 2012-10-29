@@ -403,6 +403,9 @@ void makeSphere (float radius, int subdivisions) {
        it->at(0).normalize();
        it->at(1).normalize();
        it->at(2).normalize();
+       it->at(0) *= .5;
+       it->at(1) *= .5;
+       it->at(2) *= .5;
        addTriangle(Point3(it->at(0).x, it->at(0).y, it->at(0).z),
                    Point3(it->at(1).x, it->at(1).y, it->at(1).z),
                    Point3(it->at(2).x, it->at(2).y, it->at(2).z));
